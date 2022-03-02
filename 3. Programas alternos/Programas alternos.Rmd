@@ -1,0 +1,168 @@
+---
+title: "Programas alternos"
+author: "Cero Desabasto"
+date: "2/3/2022"
+output: html_document
+---
+
+```{r, include=F, warning=F, echo=F}
+library(readxl)
+library(viridis)
+library(ggplot2)
+library(scales)
+library(dplyr)
+library(tidyverse)
+library(DT)
+library(plotly)
+```
+
+#IMSS tu receta vale
+
+```{r, include=F, warning=F, echo=F}
+
+vales <- read_excel("tidy_vales.xlsx")
+
+vales$Total<- as.numeric(vales$Total)
+
+
+vales %>%
+ filter(Tipo %in% "PRESENTADAS") %>%
+ filter(!(Zona %in% "Total")) %>%
+  group_by(Año) %>% 
+  mutate(
+    Año=factor(Año, levels=c(2017, 2018, 2019, 2020, 2021))) %>% 
+    summarise(Total=sum(Total))%>% 
+  ggplot(aes(x = Año, 
+             y = Total)) +
+  geom_col(fill="#9c1abb")+
+  geom_text(aes(x=Año, y=Total, 
+                label=comma((Total))),
+            colour="#4e484f", size=5,
+            hjust=0.5, vjust=-1)+
+  scale_y_continuous(labels = scales::comma, limits = c(0,4500000)) +  
+  labs(x="", y="", fill="")+
+  theme_minimal() +
+  theme(legend.position = "bottom")+
+  theme(strip.background = element_rect(color="black", fill="white", size=1.5),
+        strip.placement = 'outside',
+        strip.background.x = element_blank(),
+        strip.text.x = element_text(size = 12, face = "bold", angle=0))+
+  theme(panel.grid.minor.x = element_blank(),
+        panel.spacing.x = unit(0,"line")) +
+  theme(axis.text.x = element_text(angle = 0, hjust=.5, size=12, face="bold"),
+        axis.text = element_text(size = 12, colour="black"))-> figura21
+
+```
+
+```{r}
+vales %>%
+ filter(Tipo %in% c("PRESENTADAS", "ATENDIDAS")) %>%
+ filter(!(Zona %in% "Total")) %>%
+  group_by(Año, Mes, Tipo) %>% 
+  mutate(Mes=case_when(
+    Mes=="ENERO"~"ene",
+    Mes=="FEBRERO"~"feb",
+    Mes=="MARZO"~"mar",
+    Mes=="ABRIL"~"abr",
+    Mes=="MAYO"~"may",
+    Mes=="JUNIO"~"jun",
+    Mes=="JULIO"~"jul",
+    Mes=="AGOSTO"~"ago",
+    Mes=="SEPTIEMBRE"~"sep",
+    Mes=="OCTUBRE"~"oct",
+    Mes=="NOVIEMBRE"~"nov",
+    Mes=="DICIEMBRE"~"dic"),
+    Mes=factor(Mes,
+               levels=c("ene", "feb", "mar","abr", "may", "jun",
+                        "jul", "ago", "sep","oct", "nov", "dic")), 
+    Año=factor(Año, levels=c(2017, 2018, 2019, 2020, 2021)),
+    Tipo=case_when(
+      Tipo=="PRESENTADAS"~"Presentadas",
+      Tipo=="ATENDIDAS"~"Atendidas")) %>% 
+    summarise(Total=sum(Total))%>% 
+  ggplot(aes(x = Mes, 
+             y = Total, fill=Tipo)) +
+  geom_col()+
+  # geom_text(aes(x=MES, y=TOTAL, label=comma(TOTAL)),
+  #           colour="white", size=4,
+  #           hjust=1, vjust=0.3, angle=90)+
+  scale_y_continuous(labels = scales::comma) +  
+  scale_fill_manual(
+    values = c(Presentadas = "#29B5C4",
+               Atendidas = "#9c1abb")) +
+  
+  labs(x="", y="", fill="")+
+  facet_grid(.~ Año, space = 'free_x', scales = 'free_x', switch = 'x') +
+  theme_minimal() +
+  theme(legend.position = "bottom")+
+  theme(strip.background = element_rect(color="black", fill="white", size=1.5),
+        strip.placement = 'outside',
+        strip.background.x = element_blank(),
+        strip.text.x = element_text(size = 12, face = "bold", angle=0))+
+  theme(panel.grid.minor.x = element_blank(),
+        panel.spacing.x = unit(0,"line")) +
+  theme(axis.text.x = element_text(angle = 0, hjust=.5, size=12, face="bold"),
+        axis.text = element_text(size = 12, colour="black"))-> figura22
+
+
+
+```
+
+```{r, include=F, warning=F, echo=F}
+vales %>%
+ filter(Tipo %in% c("DIFERENCIA")) %>%
+ filter(!(Zona %in% "Total")) %>%
+  group_by(Año, Mes, Zona) %>% 
+  mutate(Mes=case_when(
+    Mes=="ENERO"~"ene",
+    Mes=="FEBRERO"~"feb",
+    Mes=="MARZO"~"mar",
+    Mes=="ABRIL"~"abr",
+    Mes=="MAYO"~"may",
+    Mes=="JUNIO"~"jun",
+    Mes=="JULIO"~"jul",
+    Mes=="AGOSTO"~"ago",
+    Mes=="SEPTIEMBRE"~"sep",
+    Mes=="OCTUBRE"~"oct",
+    Mes=="NOVIEMBRE"~"nov",
+    Mes=="DICIEMBRE"~"dic"),
+    Mes=factor(Mes,
+               levels=c("ene", "feb", "mar","abr", "may", "jun",
+                        "jul", "ago", "sep","oct", "nov", "dic")), 
+    Año=factor(Año, levels=c(2017, 2018, 2019, 2020, 2021))) %>% 
+    summarise(Total=sum(Total))%>% 
+  ggplot(aes(x = Mes, 
+             y = Total, fill=Zona)) +
+  geom_col()+
+  # geom_text(aes(x=MES, y=TOTAL, label=comma(TOTAL)),
+  #           colour="white", size=4,
+  #           hjust=1, vjust=0.3, angle=90)+
+  scale_y_continuous(labels = scales::comma) +  
+  scale_fill_manual(
+    values = c(`D.F. Norte` = "#D9377E",
+    `D.F. Sur` = "#9414B2",
+    Jalisco = "#2A788EFF",
+    Oriente = "#26AD85",
+    Querétaro = "#FDE725FF")) +
+  labs(x="", y="", fill="")+
+  facet_grid(.~ Año, space = 'free_x', scales = 'free_x', switch = 'x') +
+  theme_minimal() +
+  theme(legend.position = "bottom")+
+  theme(strip.background = element_rect(color="black", fill="white", size=1.5),
+        strip.placement = 'outside',
+        strip.background.x = element_blank(),
+        strip.text.x = element_text(size = 12, face = "bold", angle=0))+
+  theme(panel.grid.minor.x = element_blank(),
+        panel.spacing.x = unit(0,"line")) +
+  theme(axis.text.x = element_text(angle = 90, hjust=.5, size=12, face="bold"),
+        axis.text = element_text(size = 12, colour="black"))
+
+```
+
+
+```{r, include=F, warning=F, echo=F}
+ggsave(figura21, filename = "figura21.png", width = 25, height = 15, units = "cm", dpi = 96)
+ggsave(figura22, filename = "figura22.png", width = 25, height = 15, units = "cm", dpi = 96)
+
+```
+
