@@ -1,6 +1,17 @@
 # Radiografía del desabasto
+### Informe de Transparencia en Salud 2017-2021.
 
-Descripción de carpetas de códigos y de los archivos.
+El informe se encuentra estructurado en siete capitulos que buscan responder a las siguientes preguntas:
+
+- ¿Cuántas recetas se han quedado sin surtir?
+- ¿Existen programas alternos de surtimiento de recetas? ¿Cómo funcionan?
+- ¿Cuál ha sido la cobertura del cuadro básico de vacunación nacional?
+- ¿A dónde recurren los pacientes al enfrentarse al desabasto?
+   - Quejas, reportes y amparos.
+- ¿Cuáles son las consecuencias indirectas del desabasto?
+- ¿Cuál ha sido el rol de las organizaciones de la sociedad civil en la gestión para conseguir medicamentos?
+
+Este repositorio cuenta con las líneas del código generado en R-studio para crear las visualizaciones del informe, de la misma manera incluye los archivos con los datos utilizados.
 
 
 ------------------------------------------------------------------------------------------------------------------------------
