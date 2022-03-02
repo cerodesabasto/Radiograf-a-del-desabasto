@@ -1,0 +1,370 @@
+---
+title: "plataforma_CD"
+author: "NLMR"
+date: "18/2/2022"
+output: html_document
+---
+
+```{r, include=F, warning=F, echo=F}
+library(readxl)
+library(viridis)
+library(ggplot2)
+library(scales)
+library(dplyr)
+library(tidyverse)
+library(DT)
+library(plotly)
+
+cd <- read_excel("base_cd.xlsx", col_types = c("numeric", 
+    "text", "text", "text", "text", "text", 
+    "text", "numeric", "numeric", "numeric", 
+    "text", "text", "numeric", "text", "text", 
+    "text", "numeric", "numeric", "numeric", 
+    "numeric", "text", "text", "text", "text", 
+    "text", "text", "text", "numeric", "text", 
+    "text"))
+
+```
+
+
+
+```{r, include=F, warning=F, echo=F}
+
+
+cd %>% 
+  filter(Año %in% c(2019, 2020, 2021),
+         `Validado (por Nosotrxs)`=="Sí")%>%    
+  group_by(Año) %>% 
+  summarise(Total = n()) %>% 
+   ggplot(aes(x = Año, 
+             y = Total)) +
+  geom_col(fill="#51BC33")+
+  geom_text(aes(x=Año, y=Total, label=comma(Total)),
+             colour="white", size=4,
+             hjust=0.5, vjust=1, angle=0)+
+  scale_y_continuous(labels = scales::comma) +  
+  labs(x="", y="", fill="")+
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        strip.background = element_rect(color="black", fill="white", size=1.5),
+        strip.placement = 'outside',
+        strip.background.x = element_blank(),
+        strip.text.x = element_text(size = 12, face = "bold", angle=0),
+        panel.grid.minor.x = element_blank(),
+        panel.spacing.x = unit(0,"line"),
+        axis.text.x = element_text(angle = 0, hjust=.5, size=12, face="bold"),
+        axis.text = element_text(size = 12, colour="black"))
+
+
+```
+
+
+```{r, include=F, warning=F, echo=F}
+
+
+cd %>% 
+  filter(Año %in% c(2019, 2020, 2021),
+         `Validado (por Nosotrxs)`=="Sí")%>%
+  mutate(Cuatri=case_when(
+    Mes=="ENERO"~"ene - abr",
+    Mes=="FEBRERO"~"ene - abr",
+    Mes=="MARZO"~"ene - abr",
+    Mes=="ABRIL"~"ene - abr",
+    Mes=="MAYO"~"may - ago",
+    Mes=="JUNIO"~"may - ago",
+    Mes=="JULIO"~"may - ago",
+    Mes=="AGOSTO"~"may - ago",
+    Mes=="SEPTIEMBRE"~"sep - dic",
+    Mes=="OCTUBRE"~"sep - dic",
+    Mes=="NOVIEMBRE"~"sep - dic",
+    Mes=="DICIEMBRE"~"sep - dic"),
+    Cuatr=factor(Mes,
+               levels=c("ene - abr", "may - ago", "sep - dic")))%>%    
+  group_by(Año, Cuatri) %>% 
+  summarise(Total = n()) %>% 
+   ggplot(aes(x = Cuatri, 
+             y = Total)) +
+  geom_col(fill="#00C19F")+
+   geom_text(aes(x=Cuatri, y=Total, label=comma(Total, accuracy = 1)),
+             colour="#7e8391", size=6,
+             hjust=.5, vjust=-1, angle=0)+
+  scale_y_continuous(labels = scales::comma) +
+  labs(x="", y="Total de reportes", fill="")+
+  facet_grid(.~ Año, space = 'free_x', scales = 'free_x', switch = 'x') +
+  
+theme_minimal() +
+  theme(legend.position = "bottom")+
+  theme(strip.background = element_rect(color="black", fill="white", size=1.5),
+        strip.placement = 'outside',
+        strip.background.x = element_blank(),
+        strip.text.x = element_text(size = 15, face = "bold", angle=0),
+        panel.grid.minor.x = element_blank(),
+        panel.spacing.x = unit(0,"line"),
+        axis.text.x = element_text(angle = 0, hjust=.5, size=14, face="bold"),
+        axis.text = element_text(size = 14, colour="black"),
+        axis.title.y = element_text(face = "bold", size=14))-> figura35
+
+ggsave(figura35, filename = "figura35.png", width = 40, height = 25, units = "cm", dpi = 96)
+
+```
+
+
+
+
+```{r, include=F, warning=F, echo=F}
+
+cd %>% 
+  filter(Año %in% c(2019, 2020, 2021),
+         `Validado (por Nosotrxs)`=="Sí")%>%    
+  mutate(`Tipo de insumo`= case_when(
+    `Tipo de Medicina` == "Medicamento" ~ "Medicamento",
+    `Tipo de Medicina` == "medicamento" ~ "Medicamento",
+    `Tipo de Medicina` == "Vacuna" ~ "Vacuna",
+    `Tipo de Medicina` == "vacuna" ~ "Vacuna",
+    `Tipo de Medicina` == "material" ~ "Material de curación",
+    `Tipo de Medicina` == "Material de Curación" ~ "Material de curación",
+    `Tipo de Medicina` == "Material de curación" ~ "Material de curación",
+    `Tipo de Medicina` == "Otro" ~ "Otro",
+    `Tipo de Medicina` == "otro" ~ "Otro",      
+    `Tipo de Medicina` == "Insumo" ~ "Insumo")) %>% 
+  group_by(`Tipo de insumo`) %>% 
+  summarise(Total = n())
+```
+
+
+```{r, include=F, warning=F, echo=F}
+
+
+cd$Entidad[cd$Entidad=="Coahuila"] <- "Coahuila de Zaragoza"
+cd$Entidad[cd$Entidad=="Michoacán"] <- "Michoacán de Ocampo"
+cd$Entidad[cd$Entidad=="Estado de México"] <- "México"
+cd$Entidad[cd$Entidad=="Veracruz"] <- "Veracruz de Ignacio de la Llave"
+
+
+
+cd %>% 
+  filter(Año==2021,
+         `Validado (por Nosotrxs)`=="Sí") %>% 
+  group_by(Entidad) %>% 
+  summarise(value = n(), na.rm=T)->y 
+
+
+library(mxmaps)
+
+data("df_mxstate_2020")
+
+df<-merge(y, df_mxstate_2020,
+          by.x="Entidad",
+          by.y="state_name_official")
+
+df %>% 
+  summarise(total=sum(value))
+
+
+mxhexbin_choropleth(df, num_colors = 1) +  
+  labs(title="Reportes por entidad", 
+       fill=" Total") +
+  scale_fill_gradient(
+    low = "#c5edd0", 
+    high = "#00C19F",
+    guide = "colourbar",
+    labels = comma)+
+  theme_void()+
+  theme(legend.position = "right",
+        legend.key.height= unit(1.3, 'cm'),
+        legend.key.width= unit(1.3, 'cm'),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=12))->mapa2
+
+ggsave(mapa2, filename = "mapa2.png", width = 40, height = 25, units = "cm", dpi = 96)
+
+
+
+```
+
+
+
+
+```{r}
+
+cd %>% 
+  mutate(
+    # Corrupcion= case_when(
+    # `¿Hubo corrupción?`=="Sí"~1,
+    # `¿Hubo corrupción?`=="No"~2),
+    Cuatri=case_when(
+    Mes=="ENERO"~"ene - abr",
+    Mes=="FEBRERO"~"ene - abr",
+    Mes=="MARZO"~"ene - abr",
+    Mes=="ABRIL"~"ene - abr",
+    Mes=="MAYO"~"may - ago",
+    Mes=="JUNIO"~"may - ago",
+    Mes=="JULIO"~"may - ago",
+    Mes=="AGOSTO"~"may - ago",
+    Mes=="SEPTIEMBRE"~"sep - dic",
+    Mes=="OCTUBRE"~"sep - dic",
+    Mes=="NOVIEMBRE"~"sep - dic",
+    Mes=="DICIEMBRE"~"sep - dic"),
+    Cuatri=factor(Cuatri,
+               levels=c("ene - abr", "may - ago", "sep - dic")))%>%    
+
+  filter(Año %in% c(2020, 2021),
+         #`¿Hubo corrupción?`=="Sí"
+         ) %>% 
+  #filter(Corrupcion==1) %>%    
+  group_by(Año, Cuatri, `¿Hubo corrupción?`) %>% #Corrupción se añadió desde 2020
+  summarise(Total=n())
+```
+
+# El bueno
+
+
+```{r}
+
+cd %>% 
+  filter(Año %in% c(2020, 2021),
+         !(`Institución (s/CLUES)` %in% c("NA", NA, NA_character_)),
+         `Validado (por Nosotrxs)`=="Sí") %>% 
+  mutate(Cuatri=case_when(
+    Mes=="ENERO"~"ene - abr",
+    Mes=="FEBRERO"~"ene - abr",
+    Mes=="MARZO"~"ene - abr",
+    Mes=="ABRIL"~"ene - abr",
+    Mes=="MAYO"~"may - ago",
+    Mes=="JUNIO"~"may - ago",
+    Mes=="JULIO"~"may - ago",
+    Mes=="AGOSTO"~"may - ago",
+    Mes=="SEPTIEMBRE"~"sep - dic",
+    Mes=="OCTUBRE"~"sep - dic",
+    Mes=="NOVIEMBRE"~"sep - dic",
+    Mes=="DICIEMBRE"~"sep - dic"),
+    Cuatr=factor(Mes,
+               levels=c("ene - abr", "may - ago", "sep - dic")))%>%   
+  
+mutate(Institución=case_when(  
+        `Institución (s/CLUES)`=="ISSSTE" ~ "ISSSTE",
+      `Institución (s/CLUES)`=="IMSS" ~ "IMSS",
+      `Institución (s/CLUES)`=="INSABI (Secretaría de Salud)" ~ "INSABI (Secretaría de Salud)",
+      `Institución (s/CLUES)`=="PEMEX" ~ "Otro",
+      `Institución (s/CLUES)`=="Secretaría de Marina" ~ "Otro",
+      `Institución (s/CLUES)`=="Servicios Médicos Estatales" ~ "Otro",
+      `Institución (s/CLUES)`=="PRIVADOS" ~ "Privado",
+      `Institución (s/CLUES)`=="FISCALIA GENERAL DEL ESTADO" ~ "Otro",
+      `Institución (s/CLUES)`=="EN TODOS LADOS" ~ "Otro",
+      `Institución (s/CLUES)`=="IMSS-BIENESTAR" ~ "IMSS-BIENESTAR",
+      `Institución (s/CLUES)`=="NA" ~ "NA",
+      `Institución (s/CLUES)`=="DIF" ~ "Otro",
+      `Institución (s/CLUES)`=="SEDENA" ~ "Otro",
+      `Institución (s/CLUES)`=="Servicios Médicos Universitarios" ~ "Otro",
+      `Institución (s/CLUES)`=="Servicios Médicos Municipales" ~ "Otro",
+      `Institución (s/CLUES)`=="Cruz Roja" ~ "Otro",
+      `Institución (s/CLUES)`=="Secretaría de Comunicaciones y Transportes" ~ "Otro")) %>% 
+
+  group_by(Año, Cuatri, Institución) %>% 
+  summarise(Reportes = n())%>% 
+ggplot(aes(x=Cuatri, y=Reportes, size=Reportes))+
+  geom_count(mapping=aes(colour=Institución, size=((Reportes^3))))+
+  theme(panel.grid.major = element_line(colour = "grey"))+
+  scale_y_continuous(labels = scales::comma, limits = c(0, 1500)) +  
+  geom_text(aes(label=Reportes, fill=factor(Institución)),hjust=.5, vjust=-.8, size=6.5)+
+  facet_grid(Institución ~ Año + Cuatri , space = 'free_x', scales = 'free_x', switch = 'x')+
+  
+  theme_minimal() +
+  theme(legend.position = "bottom")+
+  theme(strip.background = element_rect(size=1.5),
+        strip.placement = 'none',
+        strip.background.x = element_blank(),
+        strip.text.x = element_text(size = 13,angle=0),
+        strip.text.y =  element_text(size = 10, face = "bold", angle=0))+
+  theme(panel.grid.minor.x = element_blank(),
+        panel.spacing.x = unit(0,"line")) +
+  theme(axis.text.x = element_text(vjust = 1, hjust=.5, size=15, face="bold"),
+        axis.text = element_text(size = 15, colour="black"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        axis.title.y = element_text(face = "bold"))-> figura36
+
+
+
+ggsave(figura36, filename = "figura36.png", width = 40, height = 25, units = "cm", dpi = 106)
+
+```
+
+
+
+```{r}
+
+cd %>% 
+  filter(Año==2019,
+         `Validado (por Nosotrxs)`=="Sí") %>% 
+  group_by(`Hospital o clínica`) %>% 
+  summarise(Total= n()) %>% 
+  arrange(-Total)
+
+
+```
+
+```{r}
+
+cd %>% 
+  filter(Año==2021) %>% 
+  group_by(Padecimiento) %>% 
+  summarise(Total= n()) %>% 
+  arrange(-Total)
+
+
+```
+
+
+
+
+
+```{r}
+
+cd %>% 
+  filter(Año==2021,
+         `Validado (por Nosotrxs)`=="Sí") %>% 
+  group_by(`Tipo de informante`) %>% 
+  summarise(value = n(), na.rm=T)
+
+
+
+```
+
+
+
+```{r}
+
+cd %>% 
+  filter(Año==2021,
+         `Validado (por Nosotrxs)`=="Sí") %>% 
+  group_by(`Institución (s/CLUES)`) %>% 
+  summarise(value = n()) %>% 
+  arrange(-value)
+
+
+
+```
+```{r}
+cd %>% 
+  filter(Año==2021,
+         `Validado (por Nosotrxs)`=="Sí") %>% 
+  group_by(
+    Padecimiento,
+    Componente) %>% 
+  summarise(value = n()) %>% 
+  arrange(-value)
+```
+
+
+
+
+```{r}
+cd %>% 
+  filter(Año==2021,
+         `Validado (por Nosotrxs)`=="Sí") %>% 
+  group_by(`Insumo (nombre real)`) %>% 
+  summarise(value = n()) %>% 
+  arrange(-value)
+```
+
+
