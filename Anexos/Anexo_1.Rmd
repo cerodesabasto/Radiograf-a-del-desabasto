@@ -1,0 +1,251 @@
+---
+title: "Anexo1"
+author: "Cero Desabasto"
+date: "2/3/2022"
+output: html_document
+---
+
+
+
+```{r}
+
+library(readxl)
+library(viridis)
+library(ggplot2)
+library(scales)
+library(dplyr)
+library(tidyverse)
+library(DT)
+library(plotly)
+
+```
+
+
+# Anexo 1
+
+```{r}
+
+base_anexo <- read_excel("base_anexo.xlsx")
+
+
+base_anexo %>%
+  filter(!(Sexo %in% "Total")) %>%
+ggplot() +
+  aes(
+    x = reorder(`Afiliación según instancia`, -Total),
+    fill = Sexo,
+    y = Total) +
+  geom_col(position = "dodge") +
+  geom_text(aes(x=`Afiliación según instancia`, 
+                y=Total,
+                label=percent((Total), accuracy =0.01)),
+            colour="#454243", position = position_dodge(0.9),
+            hjust=.5, vjust=-1, size=6)+
+  scale_fill_manual(
+    values = c(Hombres = "#45BFA7",
+               Mujeres = "#9443FF")) +
+  scale_y_continuous(labels = scales::percent, limits = c(0,.60)) +  
+  labs(x="", y="", fill="")+
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text = element_text(colour="black"),
+        axis.text.y = element_text(size=16),
+        axis.text.x = element_text(angle = 0, hjust=.5, size = 16),
+        legend.text = element_text(size=18)) ->FiguraA1
+  
+
+ggsave(FiguraA1, filename = "Figura A1.png", width = 40, height = 25, units = "cm", dpi = 96)
+
+
+  
+
+```
+
+# Afiliación por entidad
+
+```{r}
+
+base_anexoA2 <- read_excel("base_anexoA2.xlsx")
+
+
+library(mxmaps)
+
+data("df_mxstate_2020")
+
+df<-merge(base_anexoA2, df_mxstate_2020,
+          by.x="Entidad federativa",
+          by.y="state_name_official")
+
+
+df<-df %>% 
+  group_by(`Entidad federativa`) %>% 
+  summarise(value=((Total/pop)), accuracy = 0)
+
+
+df<-merge(df, df_mxstate_2020,
+          by.x="Entidad federativa",
+          by.y="state_name_official")
+
+
+
+mxhexbin_choropleth(df, num_colors = 1) +  
+  labs(title="Porcentaje de personas afiliados a una institución de salud", 
+       fill=" Porcentaje %") +
+  scale_fill_gradient(
+    low = "#f1e0ff", 
+    high = "#9443FF",
+    guide = "colourbar",
+    labels = percent)+
+  theme_void()+
+  theme(legend.position = "right",
+        legend.key.height= unit(1.3, 'cm'),
+        legend.key.width= unit(1.3, 'cm'),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=12))->FiguraA2
+
+ggsave(FiguraA2, filename = "Figura A2.png", width = 40, height = 25, units = "cm", dpi = 96)
+
+
+
+```
+# IMSS
+
+```{r}
+
+afiliacion_imss <- read_excel("C:/Users/Lenovo/Desktop/Informe/afiliación_imss.xlsx")
+
+
+df1<-merge(afiliacion_imss, df_mxstate_2020,
+          by.x="Entidad",
+          by.y="state_name_official")
+
+
+df1<-df1 %>% 
+  group_by(Entidad) %>% 
+  summarise(value=(Total/pop))
+
+
+df1<-merge(df1, df_mxstate_2020,
+          by.x="Entidad",
+          by.y="state_name_official")
+
+
+
+mxhexbin_choropleth(df1, num_colors = 1) +  
+  labs(title="Porcentaje de personas afiliados a una institución de salud", 
+       fill="Porcentaje") +
+  scale_fill_gradient(
+    low = "#CCFFC5", 
+    high = "#51BC33",
+    guide = "colourbar",    
+    labels=percent)+
+  theme_void()+
+  theme(legend.position = "right",
+        legend.key.height= unit(1.5, 'cm'),
+        legend.key.width= unit(1.5, 'cm'),
+        legend.title = element_text(size=15),
+        legend.text = element_text(size=13))->FiguraA3
+
+
+ggsave(FiguraA3, filename = "Figura A3", width = 40, height = 25, units = "cm", dpi = 96)
+
+
+
+```
+
+
+# ISSSTE
+
+```{r}
+
+afiliación_issste <- read_excel("C:/Users/Lenovo/Desktop/Informe/afiliación_issste.xlsx")
+
+data("df_mxstate_2020")
+
+
+df3<-merge(afiliación_issste, df_mxstate_2020,
+           by.x="Entidad",
+           by.y="state_name_official")
+
+
+
+df3<-df3%>% 
+  group_by(Entidad)%>% 
+  summarise(value=((Total/pop)))
+
+
+df3<-merge(df3, df_mxstate_2020,
+           by.x="Entidad",
+           by.y="state_name_official")
+
+
+
+mxhexbin_choropleth(df3, num_colors = 1) +  
+  labs(title="Porcentaje de población afiliada al ISSSTE", 
+       fill="Porcentaje") +
+  scale_fill_gradient(
+    low = "#caedff", 
+    high = "#394AFF",
+    guide = "colourbar",
+    labels=percent)+
+  theme_void()+
+  theme(legend.position = "right",
+      legend.key.height= unit(1.5, 'cm'),
+      legend.key.width= unit(1.5, 'cm'),
+      legend.title = element_text(size=15),
+      legend.text = element_text(size=13))->FiguraA4
+
+ggsave(FiguraA4, filename = "Figura A3.png", width = 40, height = 25, units = "cm", dpi = 96)
+
+
+```
+
+
+
+# PEMEX
+
+```{r}
+
+afiliación_pemex <- read_excel("C:/Users/Lenovo/Desktop/Informe/afiliación_pemex.xlsx")
+
+library(mxmaps)
+data("df_mxstate_2020")
+
+
+df4<-merge(afiliación_pemex, df_mxstate_2020,
+           by.x="Entidad",
+           by.y="state_name_official")
+
+
+
+df4<-df4%>% 
+  group_by(Entidad)%>% 
+  summarise(value=((Total/pop)*100))
+
+
+df4<-merge(df4, df_mxstate_2020,
+           by.x="Entidad",
+           by.y="state_name_official")
+
+
+
+
+mxhexbin_choropleth(df4, num_colors = 1) +  
+  labs(title="Porcentaje de población afiliada a Pemex, Defensa o Marina", 
+       fill="Porcentaje") +
+  scale_fill_gradient(
+    low = "#FFEACD", 
+    high = "#FF741D",
+    guide = "colourbar")+
+  theme_void()
+  theme(legend.position = "right",
+      legend.key.height= unit(1.5, 'cm'),
+      legend.key.width= unit(1.5, 'cm'),
+      legend.title = element_text(size=15),
+      legend.text = element_text(size=13))->FiguraA5
+
+ggsave(FiguraA5, filename = "Figura A3.png", width = 40, height = 25, units = "cm", dpi = 96)
+
+
+
+```
